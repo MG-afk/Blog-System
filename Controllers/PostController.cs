@@ -1,125 +1,147 @@
 ﻿using Blog_System.Data;
 using Blog_System.Models;
+using Blog_System.ViewModel;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Net;
 
-namespace Blog_System.Controllers
+namespace Blog_System.Controllers;
+
+[Route("[controller]/[action]")]
+public sealed class PostController(BlogContext context) : Controller
 {
-    // Controllers/PostController.cs
-    public class PostController : Controller
+
+    private readonly BlogContext _context = context;
+
+    public async Task<ActionResult> Index()
     {
-        private BlogContext _context;
-
-        public PostController(BlogContext context)
-        {
-            _context = context;
-        }
-
-        // GET: Post
-        public ActionResult Index()
-        {
-            return View(_context.Posts.ToList());
-        }
-
-        // GET: Post/Details/5
-        public ActionResult Details(int? id)
-        {
-            if (id == null)
-            {
-                return new StatusCodeResult((int)HttpStatusCode.BadRequest);
-            }
-            var post = _context.Posts.Find(id);
-            if (post == null)
-            {
-                return new StatusCodeResult((int)HttpStatusCode.NotFound);
-            }
-            return View(post);
-        }
-
-        // GET: Post/Create
-        public ActionResult Create()
-        {
-            return View();
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Title,Content")] Post post)
-        {
-            if (ModelState.IsValid)
-            {
-                post.CreatedAt = DateTime.Now;
-                _context.Add(post);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-            return View(post);
-        }
-
-        // GET: Post/Edit/5
-        public ActionResult Edit(int? id)
-        {
-            if (id == null)
-            {
-                return new StatusCodeResult((int)HttpStatusCode.BadRequest);
-            }
-            Post post = _context.Posts.Find(id);
-            if (post == null)
-            {
-                return new StatusCodeResult((int)HttpStatusCode.NotFound);
-            }
-            return View(post);
-        }
-
-        // POST: Post/Edit/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Edit([Bind(include: "Id,Title,Content,CreatedAt")] Post post)
-        {
-            if (ModelState.IsValid)
-            {
-                _context.Entry(post).State = EntityState.Modified;
-                _context.SaveChanges();
-                return RedirectToAction("Index");
-            }
-            return View(post);
-        }
-
-        // GET: Post/Delete/5
-        public ActionResult Delete(int? id)
-        {
-            if (id == null)
-            {
-                return new StatusCodeResult((int)HttpStatusCode.BadRequest);
-            }
-            Post post = _context.Posts.Find(id);
-            if (post == null)
-            {
-                return new StatusCodeResult((int)HttpStatusCode.NotFound);
-            }
-            return View(post);
-        }
-
-        // POST: Post/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public ActionResult DeleteConfirmed(int id)
-        {
-            Post post = _context.Posts.Find(id);
-            _context.Posts.Remove(post);
-            _context.SaveChanges();
-            return RedirectToAction("Index");
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                _context.Dispose();
-            }
-            base.Dispose(disposing);
-        }
+        var posts = await _context.Posts.ToListAsync();
+        return View(posts);
     }
 
+    public async Task<IActionResult> Details(int? id)
+    {
+        if (id == null)
+        {
+            return NotFound();
+        }
+
+        var post = await _context.Posts
+            .Include(p => p.Comments)
+            .FirstOrDefaultAsync(m => m.Id == id);
+
+        if (post == null)
+        {
+            return NotFound();
+        }
+
+        var viewModel = new PostDetailsViewModel
+        {
+            Post = post,
+            NewComment = new Comment { PostId = post.Id }
+        };
+
+        return View(viewModel);
+    }
+
+    public ActionResult Create()
+    {
+        return View();
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Create([Bind("Title,Content")] Post post)
+    {
+        if (ModelState.IsValid)
+        {
+            post.CreatedAt = DateTime.Now;
+            _context.Add(post);
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
+        }
+
+        return View(post);
+    }
+
+    public async Task<IActionResult> Edit(int? id)
+    {
+        if (id == null)
+            return NotFound();
+
+        var post = await _context.Posts.FindAsync(id);
+
+        if (post == null)
+            return NotFound();
+
+        return View(post);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Content")] Post post)
+    {
+        if (id != post.Id)
+            return NotFound();
+
+        if (!ModelState.IsValid)
+            return View(post);
+
+        try
+        {
+            post.CreatedAt = DateTime.Now;
+            _context.Update(post);
+            await _context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (PostExists(post.Id))
+                throw;
+
+            return NotFound();
+        }
+        return RedirectToAction(nameof(Index));
+    }
+
+    private bool PostExists(int id)
+    {
+        return _context.Posts.Any(e => e.Id == id);
+    }
+
+    public async Task<IActionResult> Delete(int? id)
+    {
+        if (id == null)
+            return NotFound();
+
+        var post = await _context.Posts.FirstOrDefaultAsync(m => m.Id == id);
+
+        if (post == null)
+            return NotFound();
+
+        return View(post);
+    }
+
+    [HttpPost]
+    [ActionName("Delete")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteConfirmed(int id)
+    {
+        var post = await _context.Posts.FindAsync(id);
+
+        if (post == null)
+            return NotFound();
+
+        _context.Posts.Remove(post);
+        await _context.SaveChangesAsync();
+
+        return RedirectToAction(nameof(Index));
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _context.Dispose();
+        }
+        base.Dispose(disposing);
+    }
 }

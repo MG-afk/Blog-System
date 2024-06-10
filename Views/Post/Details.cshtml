@@ -1,53 +1,113 @@
-﻿@model Blog_System.Models.Post
+﻿@using Blog_System.ViewModel
+@model PostDetailsViewModel
 
 @{
-    ViewBag.Title = "Details";
+    ViewData["Title"] = "Details";
 }
 
-<h2>Details</h2>
+<h1>Details</h1>
 
 <div>
     <h4>Post</h4>
     <hr />
-    <dl class="dl-horizontal">
-        <dt>
-            @Html.DisplayNameFor(model => model.Title)
+    <dl class="row">
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Post.Title)
         </dt>
-
-        <dd>
-            @Html.DisplayFor(model => model.Title)
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Post.Title)
         </dd>
-
-        <dt>
-            @Html.DisplayNameFor(model => model.Content)
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Post.Content)
         </dt>
-
-        <dd>
-            @Html.DisplayFor(model => model.Content)
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Post.Content)
         </dd>
-
-        <dt>
-            @Html.DisplayNameFor(model => model.CreatedAt)
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Post.CreatedAt)
         </dt>
-
-        <dd>
-            @Html.DisplayFor(model => model.CreatedAt)
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Post.CreatedAt)
         </dd>
     </dl>
 </div>
-<p>
-    @Html.ActionLink("Edit", "Edit", new { id = Model.Id }) |
-    @Html.ActionLink("Back to List", "Index")
-</p>
 
-<h3>Comments</h3>
+<div>
+    <h4>Comments</h4>
+    <hr />
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Content</th>
+                <th>Created At</th>
+            </tr>
+        </thead>
+        <tbody id="comments-section">
+            @foreach (var comment in Model.Post.Comments)
+            {
+                <tr>
+                    <td>@Html.DisplayFor(modelItem => comment.Content)</td>
+                    <td>@Html.DisplayFor(modelItem => comment.CreatedAt)</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
 
-@foreach (var comment in Model.Comments)
-{
-    <div>
-        <p><strong>@comment.Author</strong>: @comment.Content</p>
-        <p><em>@comment.CreatedAt</em></p>
-    </div>
+<div>
+    <h4>Add a Comment</h4>
+    <hr />
+    <form id="comment-form">
+        <div class="form-group">
+            <label for="content" class="control-label">Content</label>
+            <textarea id="content" class="form-control"></textarea>
+            <span class="text-danger"></span>
+        </div>
+        <input type="hidden" id="postId" value="@Model.Post.Id" />
+        <div class="form-group">
+            <input type="submit" value="Add Comment" class="btn btn-primary" />
+        </div>
+    </form>
+</div>
+
+<div>
+    <a asp-action="Edit" asp-route-id="@Model.Post.Id">Edit</a> |
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#comment-form').submit(function (e) {
+                e.preventDefault();
+                var postId = $('#postId').val();
+                var content = $('#content').val();
+
+                var formData = {
+                    PostId: postId,
+                    Content: content
+                };
+
+                var jsonData = JSON.stringify(formData);
+
+                $.ajax({
+                    type: 'POST',
+                    url: '/Comment/Create',
+                    contentType: 'application/json',
+                    data: jsonData,
+                    success: function (response) {
+                        $('#comments-section').append(response);
+                        $('#content').val('');
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("Error: " + error);
+                        console.error("Response: " + xhr.responseText);
+                    }
+                });
+            });
+        });
+    </script>
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }
-
-@Html.Partial("_Comment", new Blog_System.Models.Comment { PostId = Model.Id })

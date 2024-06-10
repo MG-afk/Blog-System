@@ -1,15 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿namespace Blog_System.Models;
 
-namespace Blog_System.Models
+public class Post
 {
-    public class Post
-    {
-        public int Id { get; set; }
-        [Required]
-        public string Title { get; set; }
-        [Required]
-        public string Content { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public virtual ICollection<Comment>? Comments { get; set; }
-    }
+    public int Id { get; set; }
+    public required string Title { get; set; }
+    public required string Content { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public virtual ICollection<Comment>? Comments { get; set; }
 }
