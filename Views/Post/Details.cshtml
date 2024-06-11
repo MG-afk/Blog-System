@@ -7,7 +7,7 @@
 
 <h1>Details</h1>
 
-<div>
+<div class="post-details">
     <h4>Post</h4>
     <hr />
     <dl class="row">
@@ -32,7 +32,7 @@
     </dl>
 </div>
 
-<div>
+<div class="comments-section">
     <h4>Comments</h4>
     <hr />
     <table class="table">
@@ -42,7 +42,7 @@
                 <th>Created At</th>
             </tr>
         </thead>
-        <tbody id="comments-section">
+        <tbody>
             @foreach (var comment in Model.Post.Comments)
             {
                 <tr>
@@ -54,7 +54,7 @@
     </table>
 </div>
 
-<div>
+<div class="add-comment">
     <h4>Add a Comment</h4>
     <hr />
     <form id="comment-form">
@@ -70,9 +70,9 @@
     </form>
 </div>
 
-<div>
-    <a asp-action="Edit" asp-route-id="@Model.Post.Id">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+<div class="post-actions">
+    <a asp-action="Edit" asp-route-id="@Model.Post.Id" class="btn btn-secondary">Edit</a>
+    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
 </div>
 
 @section Scripts {
@@ -96,7 +96,7 @@
                     contentType: 'application/json',
                     data: jsonData,
                     success: function (response) {
-                        $('#comments-section').append(response);
+                        $('.comments-section tbody').append(response);
                         $('#content').val('');
                     },
                     error: function (xhr, status, error) {
@@ -111,3 +111,52 @@
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
 }
+
+<style>
+    .post-details {
+        margin-bottom: 30px;
+    }
+
+    .comments-section {
+        margin-bottom: 30px;
+    }
+
+    .add-comment {
+        margin-bottom: 30px;
+    }
+
+    .post-actions {
+        margin-top: 30px;
+    }
+
+    .btn {
+        border-radius: 3px;
+        padding: 8px 16px;
+        margin-right: 10px;
+    }
+
+    .btn-primary {
+        background-color: #007bff;
+        border: none;
+    }
+
+    .btn-secondary {
+        background-color: #6c757d;
+        border: none;
+    }
+
+    .text-danger {
+        color: #dc3545;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 8px;
+        border-radius: 3px;
+        border: 1px solid #ced4da;
+    }
+
+    textarea.form-control {
+        height: 150px;
+    }
+</style>

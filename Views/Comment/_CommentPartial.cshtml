@@ -1,6 +1,21 @@
 ﻿@model Blog_System.Models.Comment
 
-<tr>
+<tr class="comment-row">
     <td>@Html.DisplayFor(model => model.Content)</td>
     <td>@Html.DisplayFor(model => model.CreatedAt)</td>
 </tr>
+
+<style>
+    .comment-row {
+        background-color: #f9f9f9;
+    }
+
+        .comment-row td {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .comment-row:last-child td {
+            border-bottom: none; /* Remove border for the last row */
+        }
+</style>
