@@ -4,7 +4,6 @@ using System.Diagnostics;
 
 namespace Blog_System.Controllers;
 
-[Route("[controller]/[action]")]
 public sealed class HomeController(ILogger<HomeController> logger) : Controller
 {
     private readonly ILogger<HomeController> _logger = logger;

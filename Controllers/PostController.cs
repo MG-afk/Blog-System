@@ -6,7 +6,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Blog_System.Controllers;
 
-[Route("[controller]/[action]")]
 public sealed class PostController(BlogContext context) : Controller
 {
 
