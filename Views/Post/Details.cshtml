@@ -20,7 +20,7 @@
             @Html.DisplayNameFor(model => model.Content)
         </dt>
         <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Content)
+            @Html.Raw(Model.Content)
         </dd>
         <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.CreatedAt)
@@ -100,7 +100,7 @@
                     data: jsonData,
                     success: function (response) {
                         $('.comments-section tbody').append(response);
-                        $('author').val('')
+                        $('#author').val('')
                         $('#content').val('');
                     },
                     error: function (xhr, status, error) {

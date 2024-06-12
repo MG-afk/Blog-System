@@ -12,7 +12,7 @@ public sealed class HomeController(BlogContext context, ILogger<HomeController> 
 
     public IActionResult Index()
     {
-        return View();
+        return View(_context.Posts);
     }
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

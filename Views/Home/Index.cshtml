@@ -1,8 +1,36 @@
-﻿@{
+﻿@model IEnumerable<Blog_System.Models.Post>
+
+@{
     ViewData["Title"] = "Home Page";
 }
 
-<div class="text-center">
+<tbody>
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>
+                @Html.ActionLink(item.Title, "Details", new { id = item.Id })
+            </td>
 
-    <p>Main page!</p>
-</div>
+            <dl class="row">
+                <dd class="col-sm-10">
+                    @Html.DisplayFor(_ => item.Title)
+                </dd>
+                <dd class="col-sm-10">
+                    @Html.Raw(item.Content)
+                </dd>
+                <dd class="col-sm-10">
+                    @Html.DisplayFor(_ => item.CreatedAt)
+                </dd>
+            </dl>
+        </tr>
+
+        if (item.Comments == null)
+            continue;
+
+        @foreach (var comment in item.Comments)
+        {
+            await Html.RenderPartialAsync("_CommentPartial", comment);
+        }
+    }
+</tbody>
