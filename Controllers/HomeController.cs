@@ -1,11 +1,13 @@
+using Blog_System.Data;
 using Blog_System.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 
 namespace Blog_System.Controllers;
 
-public sealed class HomeController(ILogger<HomeController> logger) : Controller
+public sealed class HomeController(BlogContext context, ILogger<HomeController> logger) : Controller
 {
+    private readonly BlogContext _context = context;
     private readonly ILogger<HomeController> _logger = logger;
 
     public IActionResult Index()

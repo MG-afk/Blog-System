@@ -1,6 +1,5 @@
 ﻿using Blog_System.Data;
 using Blog_System.Models;
-using Blog_System.ViewModel;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -33,13 +32,7 @@ public sealed class PostController(BlogContext context) : Controller
             return NotFound();
         }
 
-        var viewModel = new PostDetailsViewModel
-        {
-            Post = post,
-            NewComment = new Comment { PostId = post.Id }
-        };
-
-        return View(viewModel);
+        return View(post);
     }
 
     public ActionResult Create()
