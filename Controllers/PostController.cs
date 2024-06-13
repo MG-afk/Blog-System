@@ -80,7 +80,6 @@ public sealed class PostController(BlogContext context) : Controller
 
         try
         {
-            post.CreatedAt = DateTime.Now;
             _context.Update(post);
             await _context.SaveChangesAsync();
         }
