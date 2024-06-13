@@ -1,31 +1,51 @@
 ﻿using Blog_System.Data;
 using Blog_System.Models;
+using Blog_System.ViewModel;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
-namespace Blog_System.Controllers;
-
-[Route("[controller]/[action]")]
-public sealed class CommentController(BlogContext context) : Controller
+namespace Blog_System.Controllers
 {
-    private readonly BlogContext _context = context;
-
-    [HttpPost]
-    public async Task<IActionResult> Create([FromBody] Comment model)
+    [Route("[controller]/[action]")]
+    [ApiController]
+    public sealed class CommentController : Controller
     {
-        if (!ModelState.IsValid)
-            return BadRequest(ModelState);
+        private readonly BlogContext _context;
 
-        var comment = new Comment
+        public CommentController(BlogContext context)
         {
-            PostId = model.PostId,
-            Author = model.Author,
-            Content = model.Content,
-            CreatedAt = DateTime.Now
-        };
+            _context = context;
+        }
 
-        _context.Comments.Add(comment);
-        await _context.SaveChangesAsync();
+        [HttpPost]
+        public async Task<IActionResult> Create([FromBody] PostCommentViewModel model)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
-        return PartialView("_CommentPartial", comment);
+            var comment = new Comment
+            {
+                Author = model.Author,
+                Content = model.Content,
+                CreatedAt = DateTime.Now
+            };
+
+            var currentPost = await _context.Posts
+                .Include(p => p.Comments)
+                .FirstOrDefaultAsync(p => p.Id == model.PostId);
+
+            if (currentPost == null)
+                return NotFound("You can't add a comment to a non-existing post");
+
+            currentPost.Comments ??= new List<Comment>();
+
+            currentPost.Comments.Add(comment);
+
+            _context.Comments.Add(comment);
+
+            await _context.SaveChangesAsync();
+
+            return PartialView("_CommentPartial", comment);
+        }
     }
 }
